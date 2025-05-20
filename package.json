@@ -5,8 +5,8 @@
   "scripts": {
     "start": "electron .",
     "build:frontend": "npm --prefix frontend run build",
-    "build:backend": "cd backend && pyinstaller --noconfirm --onefile --windowed --name fastapi_backend main.py",
-    "package": "npm run build:frontend && npm run build:backend && electron-builder"
+      "build:backend": "cd backend && source venv/bin/activate && pyinstaller --noconfirm --onefile --windowed --name fastapi_backend main.py && deactivate",
+      "package": "npm run build:frontend && npm run build:backend && electron-builder"
   },
   "devDependencies": {
     "electron": "^29.0.0",

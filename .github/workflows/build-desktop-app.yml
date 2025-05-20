@@ -40,6 +40,7 @@ jobs:
           source backend/venv/bin/activate
           pip install -r backend/requirements.txt
           pip install pyinstaller
+          deactive
 
       - name: Build Frontend (Next.js)
         run: npm run build:frontend
@@ -47,9 +48,7 @@ jobs:
           NEXT_PUBLIC_API_URL: 'http://localhost:8000'
 
       - name: Build Backend (PyInstaller)
-        run: |
-          source backend/venv/bin/activate
-          npm run build:backend 
+        run: npm run build:backend 
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
