@@ -5,14 +5,14 @@ name: Build Desktop App
 on:
   push:
     branches:
-      - main # O workflow será acionado toda vez que houver um push na branch 'main'
+      - main
   pull_request:
     branches:
-      - main # Opcional: Aciona em pull requests também
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Rodará em um ambiente Linux. Para Windows ou macOS, use 'windows-latest' ou 'macos-latest'
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -39,33 +39,27 @@ jobs:
           python -m venv backend/venv
           source backend/venv/bin/activate
           pip install -r backend/requirements.txt
-          pip install pyinstaller # Instala pyinstaller no venv
+          pip install pyinstaller
 
       - name: Build Frontend (Next.js)
-        run: npm run build:frontend # Executa o script definido no package.json
+        run: npm run build:frontend
         env:
-          NEXT_PUBLIC_API_URL: 'http://localhost:8000' # Exemplo, ajuste conforme necessário
-          # Adicione outras variáveis de ambiente do Next.js se houver
+          NEXT_PUBLIC_API_URL: 'http://localhost:8000'
 
       - name: Build Backend (PyInstaller)
         run: |
           source backend/venv/bin/activate
-          npm run build:backend # Executa o script definido no package.json
+          npm run build:backend 
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Usa uma Secret do GitHub para a chave da API
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Install Electron Builder dependencies
-        run: npm install electron-builder --prefix . # Instala na raiz do projeto se ainda não estiver
+        run: npm install electron-builder --prefix .
 
       - name: Package Electron App
-        run: npm run package # Executa o script que faz o build final do Electron
+        run: npm run package
         env:
-          # É crucial que as variáveis de ambiente necessárias para o build do Electron estejam aqui,
-          # especialmente se o electron-builder precisar delas.
-          # Pode não ser necessário se a API Key for apenas para o runtime do backend.
-          BUILD_ENV: 'production' # Exemplo
-          # Certifique-se de que a variável GEMINI_API_KEY esteja disponível para o PyInstaller
-          # dentro do processo de build, se ele for necessário para algo além do runtime.
+          BUILD_ENV: 'production' 
 
       - name: Upload artifacts (Windows)
         uses: actions/upload-artifact@v4
@@ -79,10 +73,3 @@ jobs:
           name: RevisuApp-linux
           path: release/*.AppImage
 
-      # Se quiser builds para macOS, você precisará de um job 'runs-on: macos-latest'
-      # - name: Upload artifacts (macOS)
-      #   if: runner.os == 'macOS'
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: RevisuApp-macos
-      #     path: release/*.dmg

@@ -58,3 +58,7 @@ desktop.ini # Windows
 # IntelliJ
 
 .idea/
+
+# Git
+
+*/.git/

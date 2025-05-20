@@ -1,5 +1,5 @@
 {
-  "name": "revisu",
+  "name": "Revisu",
   "version": "1.0.0",
   "main": "electron/main.js",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "build": {
     "appId": "revisu.com.br",
-    "productName": "revisu",
+    "productName": "Revisu",
     "files": [
       "electron/**/*",
       "package.json",
