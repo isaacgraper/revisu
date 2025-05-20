@@ -13,7 +13,7 @@ release/
 
 # Next.js
 .next/
-out/ # Se você estiver usando o 'output: "export"' para build estático
+out/
 npm-debug.log*
 
 # Python
@@ -35,7 +35,7 @@ backend/dist/
 *.spec
 
 # Database
-*.db # Ignora todos os arquivos .db (como o revisu_data.db do SQLite)
+*.db
 *.sqlite
 *.sqlite3
 
@@ -55,13 +55,6 @@ logs/
 Thumbs.db # Windows
 desktop.ini # Windows
 
-# VS Code specific (optional, but common)
-.vscode/
-
 # IntelliJ
 
-
-
-# Github
-
-.github
+.idea/
