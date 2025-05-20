@@ -1,0 +1,46 @@
+{
+  "name": "revisu",
+  "version": "1.0.0",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:frontend": "npm --prefix frontend run build",
+    "build:backend": "cd backend && pyinstaller --noconfirm --onefile --windowed --name fastapi_backend main.py",
+    "package": "npm run build:frontend && npm run build:backend && electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "revisu.com.br",
+    "productName": "revisu",
+    "files": [
+      "electron/**/*",
+      "package.json",
+      {
+        "from": "frontend/out",
+        "to": "frontend",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "backend/dist",
+        "to": "backend/dist",
+        "filter": ["**/*"],
+        "unpacked": true
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "mac": {
+      "target": "dmg"
+    }
+  }
+}

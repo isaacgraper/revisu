@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-dotenv
+google-generativeai==0.3.0
+pypdf2
+markdown

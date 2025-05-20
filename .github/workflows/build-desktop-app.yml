@@ -1,0 +1,88 @@
+# .github/workflows/build-desktop-app.yml
+
+name: Build Desktop App
+
+on:
+  push:
+    branches:
+      - main # O workflow será acionado toda vez que houver um push na branch 'main'
+  pull_request:
+    branches:
+      - main # Opcional: Aciona em pull requests também
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Rodará em um ambiente Linux. Para Windows ou macOS, use 'windows-latest' ou 'macos-latest'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a versão do Node.js que você está usando (ou a mais recente LTS)
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # Use uma versão de Python que você sabe que funciona bem (ex: 3.10 ou 3.11)
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install frontend dependencies
+        run: npm install --prefix frontend
+
+      - name: Install backend Python dependencies
+        run: |
+          python -m venv backend/venv
+          source backend/venv/bin/activate
+          pip install -r backend/requirements.txt
+          pip install pyinstaller # Instala pyinstaller no venv
+
+      - name: Build Frontend (Next.js)
+        run: npm run build:frontend # Executa o script definido no package.json
+        env:
+          NEXT_PUBLIC_API_URL: 'http://localhost:8000' # Exemplo, ajuste conforme necessário
+          # Adicione outras variáveis de ambiente do Next.js se houver
+
+      - name: Build Backend (PyInstaller)
+        run: |
+          source backend/venv/bin/activate
+          npm run build:backend # Executa o script definido no package.json
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # Usa uma Secret do GitHub para a chave da API
+
+      - name: Install Electron Builder dependencies
+        run: npm install electron-builder --prefix . # Instala na raiz do projeto se ainda não estiver
+
+      - name: Package Electron App
+        run: npm run package # Executa o script que faz o build final do Electron
+        env:
+          # É crucial que as variáveis de ambiente necessárias para o build do Electron estejam aqui,
+          # especialmente se o electron-builder precisar delas.
+          # Pode não ser necessário se a API Key for apenas para o runtime do backend.
+          BUILD_ENV: 'production' # Exemplo
+          # Certifique-se de que a variável GEMINI_API_KEY esteja disponível para o PyInstaller
+          # dentro do processo de build, se ele for necessário para algo além do runtime.
+
+      - name: Upload artifacts (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: RevisuApp-windows
+          path: release/*.exe
+
+      - name: Upload artifacts (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: RevisuApp-linux
+          path: release/*.AppImage
+
+      # Se quiser builds para macOS, você precisará de um job 'runs-on: macos-latest'
+      # - name: Upload artifacts (macOS)
+      #   if: runner.os == 'macOS'
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: RevisuApp-macos
+      #     path: release/*.dmg
