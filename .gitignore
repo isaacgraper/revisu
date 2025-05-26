@@ -55,10 +55,6 @@ logs/
 Thumbs.db # Windows
 desktop.ini # Windows
 
-# IntelliJ
-
-.idea/
-
 # Git
 
 */.git/
