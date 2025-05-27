@@ -9,12 +9,9 @@ export default function Home() {
       </h1>
 
       <div className="flex flex-col md:flex-row gap-8 w-full max-w-5xl">
-        {/* Coluna da Esquerda: Processador de Arquivos */}
         <div className="md:w-1/2 flex justify-center">
           <FileProcessor />
         </div>
-
-        {/* Coluna da Direita: Últimas Notas */}
         <div className="md:w-1/2 flex justify-center">
           <LatestFilesList />
         </div>

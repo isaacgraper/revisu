@@ -42,6 +42,7 @@ export default function FilesPage() {
         const response = await axios.get<ProcessedFile[]>(
           `${API_BASE_URL}/files`,
         );
+        console.log(response.data);
         setFiles(response.data);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response) {

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-// Reutilize as interfaces de ProcessedFile e ProcessedTopic
 interface ProcessedTopic {
   id: number;
   file_id: number;
@@ -72,7 +71,6 @@ export default function FileProcessor() {
         },
       );
       console.log("File processed successfully:", response.data);
-      // Redireciona para a página de detalhes do arquivo recém-processado
       router.push(`/files/${response.data.id}`);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
@@ -89,9 +87,7 @@ export default function FileProcessor() {
       console.error("Error while processing file:", err);
     } finally {
       setIsLoading(false);
-      // Opcional: limpar selectedFile para permitir novo upload do mesmo arquivo sem re-selecionar
       setSelectedFile(null);
-      // Opcional: limpar o input de arquivo para que a mesma nota possa ser selecionada novamente
       const fileInput = document.getElementById(
         "file-upload-input",
       ) as HTMLInputElement;
@@ -110,7 +106,7 @@ export default function FileProcessor() {
       <div className="w-full mb-4">
         <Input
           type="file"
-          id="file-upload-input" // Adicione um ID para referenciar no finally
+          id="file-upload-input"
           accept=".md"
           onChange={handleFileChange}
           className="block w-full text-sm text-gray-500

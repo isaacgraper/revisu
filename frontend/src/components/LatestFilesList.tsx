@@ -5,7 +5,6 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-// Reutilize as interfaces
 interface ProcessedTopic {
   id: number;
   file_id: number;
@@ -41,7 +40,7 @@ export default function LatestFilesList() {
     const fetchFiles = async () => {
       try {
         const response = await axios.get<ProcessedFile[]>(
-          `${API_BASE_URL}/files?limit=5`, // Pedir as 5 últimas notas
+          `${API_BASE_URL}/files?limit=5`,
         );
         setFiles(response.data);
       } catch (err) {
@@ -53,7 +52,7 @@ export default function LatestFilesList() {
           );
         } else {
           setError(
-            `An unexpected error occurred: ${
+            `Ocorreu um erro inesperado: ${
               err instanceof Error ? err.message : String(err)
             }`,
           );
