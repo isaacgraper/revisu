@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List
 
@@ -27,5 +27,4 @@ class TagResponse(BaseModel):
     name: str
 
 class ReviewFeedback(BaseModel):
-    topic_id: int
-    quality: int
+    quality: int = Field(..., ge=0, le=5)

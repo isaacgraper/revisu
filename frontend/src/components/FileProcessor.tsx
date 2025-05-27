@@ -32,6 +32,9 @@ export default function FileProcessor() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [processingFileName, setProcessingFileName] = useState<string | null>(
+    null,
+  );
 
   const router = useRouter();
   const API_BASE_URL =
@@ -51,10 +54,13 @@ export default function FileProcessor() {
     }
 
     setIsLoading(true);
+    setProcessingFileName(selectedFile.name);
     setError(null);
 
     const formData = new FormData();
+
     formData.append("file", selectedFile);
+
     formData.append(
       "file_type",
       selectedFile.name.split(".").pop() || "unknown",
@@ -70,6 +76,7 @@ export default function FileProcessor() {
           },
         },
       );
+
       console.log("File processed successfully:", response.data);
       router.push(`/files/${response.data.id}`);
     } catch (err) {
@@ -77,6 +84,7 @@ export default function FileProcessor() {
         const errorDetail = err.response.data.detail
           ? JSON.stringify(err.response.data.detail, null, 2)
           : err.message;
+
         setError(`Error while processing file: ${errorDetail}`);
         console.error("Error:", err.response.data);
       } else {
@@ -96,6 +104,38 @@ export default function FileProcessor() {
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col justify-center items-center bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-300">
+        <svg
+          className="animate-spin h-12 w-12 text-blue-500 mb-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <p className="text-xl font-semibold mb-2">Processando arquivo...</p>
+        {processingFileName && <p className="text-lg">{processingFileName}</p>}
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+          Isso pode levar alguns instantes.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center p-6 border rounded-lg shadow-lg bg-white dark:bg-gray-800 w-full max-w-md">
@@ -130,7 +170,7 @@ export default function FileProcessor() {
         disabled={isLoading || !selectedFile}
         className="w-full py-2 px-4 rounded-md text-lg"
       >
-        {isLoading ? "Processando..." : "Processar Arquivo"}
+        Processar Arquivo
       </Button>
 
       {error && (

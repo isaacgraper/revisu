@@ -86,6 +86,12 @@ export default function FilesPage() {
       </h1>
       <div className="flex justify-center mb-6">
         <Button onClick={() => router.push("/")}>Processar Novo Arquivo</Button>
+        <Button
+          onClick={() => router.push("/review")}
+          className="bg-green-500 hover:bg-green-600 text-white"
+        >
+          Iniciar Revisão Agora
+        </Button>
       </div>
 
       {files.length === 0 ? (

@@ -1,5 +1,3 @@
-from random import expovariate
-import os
 import uvicorn
 import sys
 
@@ -97,6 +95,7 @@ async def get_topics_for_review_endpoint():
     Endpoint que retorna uma lista de tópicos que estão prontos para revisão,
     baseado na `next_review_date`.
     """
+
     return get_topics_for_review_service()
 
 @app.post("/topics/{topic_id}/review")
@@ -104,6 +103,7 @@ async def review_topic_endpoint(topic_id: int, feedback: ReviewFeedback):
     """
     Endpoint que registra o feedback de revisão para um tópico e recalcula a próxima data de revisão.
     """
+
     try:
         result = review_topic_service(topic_id, feedback.quality)
         return result
