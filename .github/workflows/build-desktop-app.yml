@@ -43,7 +43,7 @@ jobs:
           rm -rf backend/src/revisu_data.db || true
 
           #electron
-          rm -rf releases/
+          rm -rf releases/ || true
 
         working-directory: .
 
@@ -83,25 +83,21 @@ jobs:
 
       - name: Execute Tests with Coverage (Pytest & Coverage.py)
         run: |
-          source venv/bin/activate
           PYTHONPATH=backend pytest backend/tests --cov=backend/src --cov-report=xml
         working-directory: .
 
       - name: Analyze Code Complexity (Radon CC)
         run: |
-          source venv/bin/activate
           radon cc backend/src -s -a
         working-directory: .
 
       - name: Analyze Code Lines (Radon Raw/LLOC)
         run: |
-          source venv/bin/activate
           radon raw backend/src -s
         working-directory: .
 
       - name: Analyze Code Security (Bandit)
         run: |
-          source venv/bin/activate
           bandit -r backend/src -o backend/bandit_report.txt
         working-directory: .
 
@@ -112,7 +108,6 @@ jobs:
 
       - name: Build Backend (PyInstaller)
         run: |
-          source venv/bin/activate
           npm run build:backend
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -137,5 +132,5 @@ jobs:
       - name: Upload Audit Report
         uses: actions/upload-artifact@v4
         with:
-          name: relatorios-auditoria
+          name: audit-report
           path: backend/*.txt
