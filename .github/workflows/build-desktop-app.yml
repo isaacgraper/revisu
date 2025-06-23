@@ -1,4 +1,4 @@
-name: CI/CD do Backend (Revisu Desktop App)
+name: Revisu Desktop Build
 
 on:
   push:
@@ -68,10 +68,12 @@ jobs:
       - name: Create Python Virtual Environment and Install Backend Dependencies
         run: |
           python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r backend/requirements.txt
-          pip install pyinstaller
+
+          ./venv/bin/pip install --upgrade pip
+          ./venv/bin/pip install -r backend/requirements.txt
+          ./venv/bin/pip install pytest coverage radon bandit pyinstaller
+
+          echo "$(pwd)/venv/bin" >> $GITHUB_PATH
         working-directory: .
 
       - name: Add '__init__.py' for packages
