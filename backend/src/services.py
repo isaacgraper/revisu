@@ -31,75 +31,54 @@ def process_content_with_gemini(content: str) -> Dict[str, Any]:
     Usa a IA para gerar título, resumo, perguntas e tags de um texto.
     """
     try:
-        prompt = f"""
-        Você é um assistente de estudo focado em revisão espaçada.
-        Dada a seguinte nota, por favor, gere um JSON com:
-        1. Um `titulo` conciso para o tópico da nota.
-        2. Um `resumo` detalhado do conteúdo principal.
-        3. Uma lista de `tags` (5 a 8 palavras-chave relevantes).
-        4. Uma lista de `perguntas` (3 a 5 perguntas de múltipla escolha ou abertas) que ajudem na memorização ativa e revisão espaçada.
+        prompt = f"""Gere JSON apenas com o seguinte modelo:
+            {{
+                "titulo": "título conciso",
+                "resumo": "resumo em 2-3 frases",
+                "tags": ["tag1", "tag2", "tag3"],
+                "perguntas": ["pergunta1?", "pergunta2?", "pergunta3?"]
+            }}
 
-        Certifique-se de que a saída seja um JSON válido.
+            Contexto: Idioma em português. Nota do usuário limitada por segurança. Revisão rápida e concisa.
 
-        Conteúdo da Nota:
-        {content[:3000]}
-        """
+            Propósito: Revisão espaçada, baseando-se na nota fornecida e preenchendo o JSON de acordo.
+
+            Com a seguinte nota: {content[:2000]}
+            """
 
         response = model.generate_content(prompt)
         generated_text = response.text
 
         try:
-            if generated_text.strip().startswith('```json') and generated_text.strip().endswith('```'):
-                json_str = generated_text.strip()[7:-3].strip()
-            else:
-                json_str = generated_text.strip()
+            json_str = generated_text.strip()
+            if json_str.startswith('```'):
+                json_str = json_str.split('\n', 1)[1].rsplit('\n', 1)[0]
 
             parsed_data = json.loads(json_str)
 
-            summary = parsed_data.get("resumo", "Resumo não encontrado.")
-            title = parsed_data.get("titulo", content.split('\n')[0][:50] if content else "Novo Tópico")
-
-            raw_questions = parsed_data.get("perguntas", [])
-            questions: list[str] = []
-            if isinstance(raw_questions, list) and all(isinstance(q, str) for q in raw_questions):
-                questions = raw_questions
-            elif isinstance(raw_questions, str):
-                questions = [q.strip() for q in raw_questions.split('\n') if q.strip()]
-            else:
-                questions = ["Por favor, reformule sua nota para gerar perguntas.", "Não foi possível extrair perguntas."]
-
-            raw_tags = parsed_data.get("tags", [])
-            tags: list[str] = []
-            if isinstance(raw_tags, list) and all(isinstance(t, str) for t in raw_tags):
-                tags = raw_tags
-            elif isinstance(raw_tags, str):
-                tags = [t.strip() for t in raw_tags.split(',') if t.strip()]
-            else:
-                tags = ["sem-tags", "geral"]
-
             return {
-                "title": title,
-                "summary": summary,
-                "tags": tags,
-                "questions": questions
+                "title": parsed_data.get("titulo", content.split('\n')[0][:50] if content else "Novo Tópico"),
+                "summary": parsed_data.get("resumo", "Resumo não disponível."),
+                "tags": parsed_data.get("tags", ["geral"])[:3],
+                "questions": parsed_data.get("perguntas", ["Revise o conteúdo."])[:5]
             }
 
         except json.JSONDecodeError as e:
-            print(f"Erro ao decodificar JSON da resposta do Gemini: {e}")
-            print(f"Resposta bruta do Gemini: {generated_text[:500]}...")
+            print(f"JSON inválido: {e}")
             return {
-                "title": "Erro na IA - Título Padrão",
-                "summary": "Resumo gerado manualmente devido a erro na IA ou formato inválido.",
-                "tags": ["erro-ia", "formato-invalido"],
-                "questions": ["Por que o JSON falhou?", "Como posso melhorar o prompt?", "O que é JSON?"]
+                "title": "Título Manual",
+                "summary": "Erro no processamento.",
+                "tags": ["erro"],
+                "questions": ["Revisar nota?"]
             }
+
     except Exception as e:
-        print(f"Erro geral ao chamar a API do Gemini: {e}")
+        print(f"Erro API: {e}")
         return {
-            "title": "Erro na IA - Título Padrão",
-            "summary": "Resumo gerado manualmente devido a erro geral na API.",
-            "tags": ["erro-api", "gemini-falha"],
-            "questions": ["Houve um problema de conexão com a IA.", "Verifique sua chave de API.", "Tente novamente mais tarde."]
+            "title": "Erro",
+            "summary": "Falha na API.",
+            "tags": ["erro-api"],
+            "questions": ["Tentar novamente?"]
         }
 
 def calculate_next_review(repetitions: int, ease_factor: float, quality: int) -> Tuple[datetime, int, float]:

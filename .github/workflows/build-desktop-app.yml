@@ -1,6 +1,4 @@
-# .github/workflows/build-desktop-app.yml
-
-name: Build Desktop App
+name: CI/CD do Backend (Revisu Desktop App)
 
 on:
   push:
@@ -18,57 +16,126 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cleaning up
+        run: |
+
+          # /
+          rm -rf .idea || true
+          rm -rf .ropeproject || true
+
+          # frontend
+          rm -rf frontend/node_modules || true
+          rm -rf frontend/out || true
+          rm -rf frontend/.next || true
+
+          # backend
+          rm -rf backend/dist || true
+          rm -rf backend/build || true
+          rm -rf backend/__pycache__ || true
+          rm -rf backend/htmlcov || true
+          rm -f backend/.coverage || true
+          rm -rf backend/.ropeproject || true
+          rm -rf backend/.pytest_cache || true
+          rm -rf backend/.venv || true
+
+          # backend/src
+          rm -rf backend/src/__pycache__ || true
+          rm -rf backend/src/revisu_data.db || true
+
+          #electron
+          rm -rf releases/
+
+        working-directory: .
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use a versão do Node.js que você está usando (ou a mais recente LTS)
+          node-version: "20"
+          cache: "npm"
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10' # Use uma versão de Python que você sabe que funciona bem (ex: 3.10 ou 3.11)
-
-      - name: Install root dependencies
+      - name: Install root Node.js dependencies (Electron, etc.)
         run: npm install
 
-      - name: Install frontend dependencies
+      - name: Install frontend Node.js dependencies
         run: npm install --prefix frontend
 
-      - name: Install backend Python dependencies
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Create Python Virtual Environment and Install Backend Dependencies
         run: |
-          python -m venv backend/venv
-          source backend/venv/bin/activate
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
           pip install -r backend/requirements.txt
           pip install pyinstaller
-          deactive
+        working-directory: .
+
+      - name: Add '__init__.py' for packages
+        run: |
+          touch backend/__init__.py
+          touch backend/src/__init__.py
+          touch backend/tests/__init__.py
+        working-directory: .
+
+      - name: Execute Tests with Coverage (Pytest & Coverage.py)
+        run: |
+          source venv/bin/activate
+          PYTHONPATH=backend pytest backend/tests --cov=backend/src --cov-report=xml
+        working-directory: .
+
+      - name: Analyze Code Complexity (Radon CC)
+        run: |
+          source venv/bin/activate
+          radon cc backend/src -s -a
+        working-directory: .
+
+      - name: Analyze Code Lines (Radon Raw/LLOC)
+        run: |
+          source venv/bin/activate
+          radon raw backend/src -s
+        working-directory: .
+
+      - name: Analyze Code Security (Bandit)
+        run: |
+          source venv/bin/activate
+          bandit -r backend/src -o backend/bandit_report.txt
+        working-directory: .
 
       - name: Build Frontend (Next.js)
         run: npm run build:frontend
         env:
-          NEXT_PUBLIC_API_URL: 'http://localhost:8000'
+          NEXT_PUBLIC_API_URL: "http://localhost:8000"
 
       - name: Build Backend (PyInstaller)
-        run: npm run build:backend 
+        run: |
+          source venv/bin/activate
+          npm run build:backend
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
-      - name: Install Electron Builder dependencies
-        run: npm install electron-builder --prefix .
 
       - name: Package Electron App
         run: npm run package
         env:
-          BUILD_ENV: 'production' 
+          BUILD_ENV: "production"
 
       - name: Upload artifacts (Windows)
         uses: actions/upload-artifact@v4
         with:
-          name: RevisuApp-windows
+          name: revisu-windows
           path: release/*.exe
 
       - name: Upload artifacts (Linux)
         uses: actions/upload-artifact@v4
         with:
-          name: RevisuApp-linux
+          name: revisu-linux
           path: release/*.AppImage
 
+      - name: Upload Audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-auditoria
+          path: backend/*.txt
